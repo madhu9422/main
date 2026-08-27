@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel | Madhukumar C.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Login Styles */
+    .login-container {
+      max-width: 420px;
+      margin: 100px auto;
+      padding: 2.5rem;
+      background: #0f1117;
+      border-radius: 28px;
+      border: 1px solid #1e2a3a;
+      text-align: center;
+    }
+    .login-container h2 {
+      color: #7ab3ff;
+      margin-bottom: 0.5rem;
+      font-size: 1.8rem;
+    }
+    .login-container .subtitle {
+      color: #6c7a8a;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    .login-container input {
+      width: 100%;
+      background: #1a1e26;
+      border: 1px solid #2b3440;
+      padding: 14px 18px;
+      margin-bottom: 1rem;
+      border-radius: 16px;
+      color: white;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    .login-container input:focus {
+      border-color: #1e88e5;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(30,136,229,0.2);
+    }
+    .login-container button {
+      width: 100%;
+      background: #1e88e5;
+      padding: 14px;
+      border-radius: 40px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    .login-container button:hover {
+      background: #0b5e9e;
+      transform: translateY(-2px);
+    }
+    .login-error {
+      color: #d32f2f;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+    .login-container .lock-icon {
+      font-size: 3rem;
+      color: #1e88e5;
+      margin-bottom: 1rem;
+    }
+
+    /* Admin Panel Styles */
+    .admin-panel {
+      display: none !important;
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 2rem;
+    }
+    .admin-panel.active {
+      display: block !important;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #1e88e5;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .admin-header h2 {
+      color: #7ab3ff;
+      font-size: 2rem;
+    }
+    .admin-header .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .admin-header .back-link {
+      color: #cbd5e6;
+      text-decoration: none;
+      padding: 8px 20px;
+      border: 1px solid #1e88e5;
+      border-radius: 40px;
+      transition: 0.3s;
+    }
+    .admin-header .back-link:hover {
+      background: #1e88e5;
+      color: white;
+    }
+    .admin-header .logout-btn {
+      background: #d32f2f;
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 40px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .admin-header .logout-btn:hover {
+      background: #b71c1c;
+      transform: scale(1.02);
+    }
+    .admin-status {
+      background: #1a1e26;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      color: #7ab3ff;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .admin-section {
+      background: #0f1117;
+      border-radius: 24px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid #20262e;
+    }
+    .admin-section h3 {
+      color: #b9d0ff;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      border-bottom: 1px solid #1e2a3a;
+      padding-bottom: 0.5rem;
+    }
+    .admin-section input, .admin-section textarea {
+      width: 100%;
+      background: #1a1e26;
+      border: 1px solid #2b3440;
+      padding: 10px 16px;
+      margin-bottom: 0.8rem;
+      border-radius: 16px;
+      color: white;
+      font-family: inherit;
+      transition: 0.3s;
+    }
+    .admin-section input:focus, .admin-section textarea:focus {
+      border-color: #1e88e5;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(30,136,229,0.2);
+    }
+    .admin-section input[type="file"] {
+      padding: 12px;
+      background: #1a1e26;
+      border: 2px dashed #2b3440;
+      cursor: pointer;
+    }
+    .admin-section input[type="file"]:hover {
+      border-color: #1e88e5;
+    }
+    .admin-section button {
+      background: #1e88e5;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: 0.3s;
+      font-size: 0.9rem;
+    }
+    .admin-section button:hover {
+      background: #0b5e9e;
+      transform: translateY(-2px);
+    }
+    .admin-section button.danger {
+      background: #d32f2f;
+    }
+    .admin-section button.danger:hover {
+      background: #b71c1c;
+    }
+    .admin-section button.success {
+      background: #2e7d32;
+    }
+    .admin-section button.success:hover {
+      background: #1b5e20;
+    }
+    .skill-row, .cert-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin-bottom: 8px;
+    }
+    .skill-row input, .cert-row input {
+      flex: 1;
+      margin: 0;
+      min-width: 100px;
+    }
+    .skill-row button, .cert-row button {
+      margin: 0;
+      padding: 6px 16px;
+    }
+    .cert-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+    .cert-item .cert-preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #2b3440;
+    }
+    .cert-item .cert-info {
+      flex: 1;
+      min-width: 150px;
+    }
+    .cert-item .cert-info input {
+      margin: 0;
+      min-width: 120px;
+    }
+    .cert-item .cert-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cert-item .cert-actions button {
+      padding: 4px 12px;
+      font-size: 0.8rem;
+    }
+    .cert-item .cert-actions .view-btn {
+      background: #2e7d32;
+    }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 16px;
+      margin-top: 8px;
+    }
+    .file-preview i {
+      font-size: 1.5rem;
+      color: #1e88e5;
+    }
+    .file-preview .file-name {
+      color: #cbd5e6;
+      font-size: 0.9rem;
+      flex: 1;
+    }
+    .file-preview .file-size {
+      color: #6c7a8a;
+      font-size: 0.8rem;
+    }
+    .exp-item, .project-item {
+      background: #1a1e26;
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+    }
+    .inline-flex {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .inline-flex input {
+      flex: 1;
+      min-width: 140px;
+      margin-bottom: 0;
+    }
+    .inline-flex input[type="number"] {
+      max-width: 100px;
+    }
+    .change-password-section {
+      border-color: #1e88e5;
+    }
+    .change-password-section input {
+      max-width: 400px;
+    }
+    .upload-progress {
+      display: none;
+      margin-top: 8px;
+      padding: 8px 16px;
+      background: #1a1e26;
+      border-radius: 16px;
+      color: #7ab3ff;
+    }
+    .upload-progress.active {
+      display: block;
+    }
+    .credential-info {
+      background: #1a1e26;
+      padding: 10px 16px;
+      border-radius: 12px;
+      margin: 10px 0;
+      font-size: 0.85rem;
+      color: #7ab3ff;
+      border-left: 3px solid #1e88e5;
+    }
+
+    @media (max-width: 600px) {
+      .admin-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .admin-header .header-actions {
+        flex-direction: column;
+      }
+      .admin-header .header-actions a,
+      .admin-header .header-actions button {
+        text-align: center;
+      }
+      .cert-item {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cert-item .cert-preview {
+        width: 100%;
+        height: auto;
+        max-height: 150px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== LOGIN SCREEN ========== -->
+<div id="loginScreen" class="login-container">
+  <div class="lock-icon"><i class="fas fa-lock"></i></div>
+  <h2>Admin Access</h2>
+  <p class="subtitle">Enter your credentials to manage the portfolio</p>
+  
+  <div class="credential-info">
+    <i class="fas fa-info-circle"></i> Default: <strong>admin</strong> / <strong>admin123</strong>
+  </div>
+  
+  <form id="loginForm">
+    <input type="text" id="loginUsername" placeholder="Username" value="admin" autocomplete="username">
+    <input type="password" id="loginPassword" placeholder="Password" value="admin123" autocomplete="current-password">
+    <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+    <div id="loginError" class="login-error">❌ Invalid username or password. Try admin/admin123</div>
+  </form>
+</div>
+
+<!-- ========== ADMIN PANEL ========== -->
+<div id="adminPanel" class="admin-panel">
+  <div class="container">
+    <div class="admin-header">
+      <h2><i class="fas fa-user-shield"></i> Admin Dashboard</h2>
+      <div class="header-actions">
+        <button id="changePasswordBtn" class="success" style="background:#2e7d32;"><i class="fas fa-key"></i> Change Password</button>
+        <button id="exportDataBtn" class="success" style="background:#2e7d32;"><i class="fas fa-download"></i> Export URL</button>
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> View Site</a>
+        <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </div>
+
+    <div class="admin-status">⚡ Changes are saved automatically. Share the URL to show your updated portfolio!</div>
+
+    <!-- Personal Info -->
+    <div class="admin-section">
+      <h3>👤 Personal Information</h3>
+      <input type="text" id="adminName" placeholder="Your Name" value="Madhukumar C.">
+      <textarea id="adminBio" placeholder="Short bio (shown on homepage)" rows="2">I specialize in Technical Support, Linux Administration, Networking, Server Monitoring, and Security Operations.</textarea>
+      <textarea id="adminAbout" placeholder="About Me section" rows="3">I am a Computer Science graduate with hands-on experience at Eduquity Career Technologies, supporting large-scale CBT infrastructure, server monitoring, incident management, and network troubleshooting. I am passionate about networking, Linux, cybersecurity, and automation using Python.</textarea>
+      <button id="updatePersonalBtn"><i class="fas fa-save"></i> Update & Apply</button>
+    </div>
+
+    <!-- Resume Upload -->
+    <div class="admin-section">
+      <h3>📄 Resume Upload</h3>
+      <p style="color:#6c7a8a; font-size:0.9rem; margin-bottom:1rem;">Upload your resume as PDF or image. Supported formats: PDF, JPG, PNG</p>
+      <input type="file" id="resumeFileInput" accept=".pdf,.jpg,.jpeg,.png">
+      <div id="resumePreview" class="file-preview" style="display:none;">
+        <i class="fas fa-file-pdf"></i>
+        <span class="file-name" id="resumeFileName">resume.pdf</span>
+        <span class="file-size" id="resumeFileSize">2.5 MB</span>
+        <button id="removeResumeBtn" class="danger" style="padding:4px 12px; font-size:0.8rem;">Remove</button>
+      </div>
+      <button id="uploadResumeBtn" style="margin-top:10px;"><i class="fas fa-upload"></i> Upload Resume</button>
+      <div id="resumeUploadProgress" class="upload-progress">⏳ Uploading...</div>
+      <p style="font-size:0.8rem; color:#7a8a9a; margin-top:6px;">Current: <span id="currentResumeDisplay">No resume uploaded</span></p>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="admin-section">
+      <h3>📞 Contact Information</h3>
+      <input type="text" id="adminEmail" placeholder="Email" value="madhukumarc009@gmail.com">
+      <input type="text" id="adminPhone" placeholder="Phone" value="+91 8688050394">
+      <input type="text" id="adminLinkedin" placeholder="LinkedIn URL" value="linkedin.com/in/madhukumarc">
+      <input type="text" id="adminGithub" placeholder="GitHub URL" value="github.com/madhukumarc">
+      <button id="updateContactBtn"><i class="fas fa-save"></i> Update & Apply</button>
+    </div>
+
+    <!-- Skills -->
+    <div class="admin-section">
+      <h3>⚙️ Manage Skills</h3>
+      <div id="adminSkillList"></div>
+      <div class="inline-flex">
+        <input type="text" id="newSkillName" placeholder="Skill name">
+        <input type="number" id="newSkillLevel" placeholder="Level 0-100" min="0" max="100">
+        <button id="addSkillBtn"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="admin-section">
+      <h3>💼 Manage Experience</h3>
+      <div id="adminExpList"></div>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newExpTitle" placeholder="Job Title">
+        <input type="text" id="newExpCompany" placeholder="Company & Date">
+        <textarea id="newExpDesc" placeholder="Description (one per line, use ✓ or •)" rows="3"></textarea>
+        <button id="addExpBtn"><i class="fas fa-plus"></i> Add Experience</button>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="admin-section">
+      <h3>🚀 Manage Projects</h3>
+      <div id="adminProjectList"></div>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newProjectTitle" placeholder="Project Title">
+        <input type="text" id="newProjectTech" placeholder="Technologies (comma separated)">
+        <textarea id="newProjectDesc" placeholder="Description" rows="2"></textarea>
+        <button id="addProjectBtn"><i class="fas fa-plus"></i> Add Project</button>
+      </div>
+    </div>
+
+    <!-- Certifications with File Upload -->
+    <div class="admin-section">
+      <h3>📜 Manage Certifications</h3>
+      <p style="color:#6c7a8a; font-size:0.9rem; margin-bottom:1rem;">Add certification name and upload certificate file (PDF or image)</p>
+      <div id="adminCertList"></div>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newCertName" placeholder="Certification name" style="margin-bottom:0.5rem;">
+        <input type="file" id="newCertFile" accept=".pdf,.jpg,.jpeg,.png" style="margin-bottom:0.5rem;">
+        <div id="newCertPreview" class="file-preview" style="display:none;">
+          <i class="fas fa-file-pdf"></i>
+          <span class="file-name" id="newCertFileName">file.pdf</span>
+          <span class="file-size" id="newCertFileSize">0 KB</span>
+        </div>
+        <button id="addCertBtn"><i class="fas fa-plus"></i> Add Certification</button>
+      </div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="admin-section change-password-section">
+      <h3>🔑 Change Password</h3>
+      <p style="color:#6c7a8a; font-size:0.85rem; margin-bottom:1rem;">Current password: <strong>admin123</strong> (default)</p>
+      <input type="password" id="currentPassword" placeholder="Current Password">
+      <input type="password" id="newPassword" placeholder="New Password (min 6 characters)">
+      <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+      <button id="changePasswordSubmitBtn" style="background:#2e7d32;"><i class="fas fa-key"></i> Change Password</button>
+      <p id="passwordMessage" style="font-size:0.85rem; margin-top:0.5rem; color:#7ab3ff;"></p>
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="admin-section" style="border-color: #d32f2f;">
+      <h3 style="color: #d32f2f;">⚠️ Danger Zone</h3>
+      <button id="resetDataBtn" class="danger" style="background:#d32f2f;"><i class="fas fa-trash"></i> Reset All Data to Default</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
