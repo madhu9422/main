@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Admin Panel | Madhukumar C.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-panel {
+      display: block !important;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #1e88e5;
+    }
+    .admin-header h2 {
+      color: #7ab3ff;
+      font-size: 2rem;
+    }
+    .admin-header .back-link {
+      color: #cbd5e6;
+      text-decoration: none;
+      padding: 8px 20px;
+      border: 1px solid #1e88e5;
+      border-radius: 40px;
+      transition: 0.3s;
+    }
+    .admin-header .back-link:hover {
+      background: #1e88e5;
+      color: white;
+    }
+    .admin-status {
+      background: #1a1e26;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      color: #7ab3ff;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+    .admin-section {
+      background: #0f1117;
+      border-radius: 24px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      border: 1px solid #20262e;
+    }
+    .admin-section h3 {
+      color: #b9d0ff;
+      margin-bottom: 1rem;
+      font-size: 1.3rem;
+      border-bottom: 1px solid #1e2a3a;
+      padding-bottom: 0.5rem;
+    }
+    .admin-section input, .admin-section textarea {
+      width: 100%;
+      background: #1a1e26;
+      border: 1px solid #2b3440;
+      padding: 10px 16px;
+      margin-bottom: 0.8rem;
+      border-radius: 16px;
+      color: white;
+      font-family: inherit;
+      transition: 0.3s;
+    }
+    .admin-section input:focus, .admin-section textarea:focus {
+      border-color: #1e88e5;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(30,136,229,0.2);
+    }
+    .admin-section button {
+      background: #1e88e5;
+      padding: 10px 24px;
+      border-radius: 40px;
+      font-weight: 600;
+      border: none;
+      color: white;
+      cursor: pointer;
+      margin-right: 10px;
+      transition: 0.3s;
+      font-size: 0.9rem;
+    }
+    .admin-section button:hover {
+      background: #0b5e9e;
+      transform: translateY(-2px);
+    }
+    .admin-section button.danger {
+      background: #d32f2f;
+    }
+    .admin-section button.danger:hover {
+      background: #b71c1c;
+    }
+    .skill-row, .cert-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin-bottom: 8px;
+    }
+    .skill-row input, .cert-row input {
+      flex: 1;
+      margin: 0;
+      min-width: 100px;
+    }
+    .skill-row button, .cert-row button {
+      margin: 0;
+      padding: 6px 16px;
+    }
+    .exp-item, .project-item {
+      background: #1a1e26;
+      padding: 1rem;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+    }
+    .exp-item input, .project-item input,
+    .exp-item textarea, .project-item textarea {
+      margin-bottom: 0.5rem;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .btn-row input {
+      flex: 1;
+      min-width: 120px;
+      margin-bottom: 0;
+    }
+    .btn-row button {
+      margin: 0;
+    }
+    .inline-flex {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .inline-flex input {
+      flex: 1;
+      min-width: 140px;
+      margin-bottom: 0;
+    }
+    .inline-flex input[type="number"] {
+      max-width: 100px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <h2><i class="fas fa-user-shield"></i> Admin Dashboard</h2>
+      <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> View Site</a>
+    </div>
+
+    <div class="admin-status">⚡ All changes are saved in localStorage and update the page instantly</div>
+
+    <!-- Personal Info -->
+    <div class="admin-section">
+      <h3>👤 Personal Information</h3>
+      <input type="text" id="adminName" placeholder="Your Name" value="Madhukumar C.">
+      <textarea id="adminBio" placeholder="Short bio (shown on homepage)" rows="2">I specialize in Technical Support, Linux Administration, Networking, Server Monitoring, and Security Operations.</textarea>
+      <textarea id="adminAbout" placeholder="About Me section" rows="3">I am a Computer Science graduate with hands-on experience at Eduquity Career Technologies, supporting large-scale CBT infrastructure, server monitoring, incident management, and network troubleshooting. I am passionate about networking, Linux, cybersecurity, and automation using Python.</textarea>
+      <button id="updatePersonalBtn"><i class="fas fa-save"></i> Update Personal Info</button>
+    </div>
+
+    <!-- Resume -->
+    <div class="admin-section">
+      <h3>📄 Resume Link</h3>
+      <input type="text" id="resumeLinkInput" placeholder="Paste resume download URL (PDF link)">
+      <button id="updateResumeBtn"><i class="fas fa-save"></i> Update Resume</button>
+      <p style="font-size:0.8rem; color:#7a8a9a; margin-top:6px;">Current: <span id="currentResumeDisplay">default (sample)</span></p>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="admin-section">
+      <h3>📞 Contact Information</h3>
+      <input type="text" id="adminEmail" placeholder="Email" value="madhukumarc009@gmail.com">
+      <input type="text" id="adminPhone" placeholder="Phone" value="+91 8688050394">
+      <input type="text" id="adminLinkedin" placeholder="LinkedIn URL" value="linkedin.com/in/madhukumarc">
+      <input type="text" id="adminGithub" placeholder="GitHub URL" value="github.com/madhukumarc">
+      <button id="updateContactBtn"><i class="fas fa-save"></i> Update Contact Info</button>
+    </div>
+
+    <!-- Skills -->
+    <div class="admin-section">
+      <h3>⚙️ Manage Skills</h3>
+      <div id="adminSkillList"></div>
+      <div class="inline-flex">
+        <input type="text" id="newSkillName" placeholder="Skill name">
+        <input type="number" id="newSkillLevel" placeholder="Level 0-100" min="0" max="100">
+        <button id="addSkillBtn"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </div>
+
+    <!-- Experience -->
+    <div class="admin-section">
+      <h3>💼 Manage Experience</h3>
+      <div id="adminExpList"></div>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newExpTitle" placeholder="Job Title">
+        <input type="text" id="newExpCompany" placeholder="Company & Date">
+        <textarea id="newExpDesc" placeholder="Description (one per line, use ✓ or •)" rows="3"></textarea>
+        <button id="addExpBtn"><i class="fas fa-plus"></i> Add Experience</button>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div class="admin-section">
+      <h3>🚀 Manage Projects</h3>
+      <div id="adminProjectList"></div>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newProjectTitle" placeholder="Project Title">
+        <input type="text" id="newProjectTech" placeholder="Technologies (comma separated)">
+        <textarea id="newProjectDesc" placeholder="Description" rows="2"></textarea>
+        <button id="addProjectBtn"><i class="fas fa-plus"></i> Add Project</button>
+      </div>
+    </div>
+
+    <!-- Certifications -->
+    <div class="admin-section">
+      <h3>📜 Manage Certifications</h3>
+      <div id="adminCertList"></div>
+      <div class="inline-flex">
+        <input type="text" id="newCertName" placeholder="Certification name" style="flex:1;">
+        <button id="addCertBtn"><i class="fas fa-plus"></i> Add</button>
+      </div>
+    </div>
+
+    <!-- Reset/Danger Zone -->
+    <div class="admin-section" style="border-color: #d32f2f;">
+      <h3 style="color: #d32f2f;">⚠️ Danger Zone</h3>
+      <button id="resetDataBtn" class="danger" style="background:#d32f2f;"><i class="fas fa-trash"></i> Reset All Data to Default</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
