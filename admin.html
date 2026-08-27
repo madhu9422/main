@@ -75,7 +75,7 @@
     /* Admin Panel Styles */
     .admin-panel {
       display: none !important;
-      max-width: 900px;
+      max-width: 1100px;
       margin: 2rem auto;
       padding: 2rem;
     }
@@ -167,6 +167,15 @@
       outline: none;
       box-shadow: 0 0 0 3px rgba(30,136,229,0.2);
     }
+    .admin-section input[type="file"] {
+      padding: 12px;
+      background: #1a1e26;
+      border: 2px dashed #2b3440;
+      cursor: pointer;
+    }
+    .admin-section input[type="file"]:hover {
+      border-color: #1e88e5;
+    }
     .admin-section button {
       background: #1e88e5;
       padding: 10px 24px;
@@ -214,15 +223,70 @@
       margin: 0;
       padding: 6px 16px;
     }
+    .cert-item {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 16px;
+      margin-bottom: 8px;
+    }
+    .cert-item .cert-preview {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid #2b3440;
+    }
+    .cert-item .cert-info {
+      flex: 1;
+      min-width: 150px;
+    }
+    .cert-item .cert-info input {
+      margin: 0;
+      min-width: 120px;
+    }
+    .cert-item .cert-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .cert-item .cert-actions button {
+      padding: 4px 12px;
+      font-size: 0.8rem;
+    }
+    .cert-item .cert-actions .view-btn {
+      background: #2e7d32;
+    }
+    .file-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #1a1e26;
+      padding: 8px 16px;
+      border-radius: 16px;
+      margin-top: 8px;
+    }
+    .file-preview i {
+      font-size: 1.5rem;
+      color: #1e88e5;
+    }
+    .file-preview .file-name {
+      color: #cbd5e6;
+      font-size: 0.9rem;
+      flex: 1;
+    }
+    .file-preview .file-size {
+      color: #6c7a8a;
+      font-size: 0.8rem;
+    }
     .exp-item, .project-item {
       background: #1a1e26;
       padding: 1rem;
       border-radius: 16px;
       margin-bottom: 1rem;
-    }
-    .exp-item input, .project-item input,
-    .exp-item textarea, .project-item textarea {
-      margin-bottom: 0.5rem;
     }
     .inline-flex {
       display: flex;
@@ -244,6 +308,17 @@
     .change-password-section input {
       max-width: 400px;
     }
+    .upload-progress {
+      display: none;
+      margin-top: 8px;
+      padding: 8px 16px;
+      background: #1a1e26;
+      border-radius: 16px;
+      color: #7ab3ff;
+    }
+    .upload-progress.active {
+      display: block;
+    }
 
     @media (max-width: 600px) {
       .admin-header {
@@ -256,6 +331,15 @@
       .admin-header .header-actions a,
       .admin-header .header-actions button {
         text-align: center;
+      }
+      .cert-item {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cert-item .cert-preview {
+        width: 100%;
+        height: auto;
+        max-height: 150px;
       }
     }
   </style>
@@ -304,12 +388,20 @@
       <button id="updatePersonalBtn"><i class="fas fa-save"></i> Update & Apply</button>
     </div>
 
-    <!-- Resume -->
+    <!-- Resume Upload -->
     <div class="admin-section">
-      <h3>📄 Resume Link</h3>
-      <input type="text" id="resumeLinkInput" placeholder="Paste resume download URL (PDF link)">
-      <button id="updateResumeBtn"><i class="fas fa-save"></i> Update Resume</button>
-      <p style="font-size:0.8rem; color:#7a8a9a; margin-top:6px;">Current: <span id="currentResumeDisplay">default (sample)</span></p>
+      <h3>📄 Resume Upload</h3>
+      <p style="color:#6c7a8a; font-size:0.9rem; margin-bottom:1rem;">Upload your resume as PDF or image. Supported formats: PDF, JPG, PNG</p>
+      <input type="file" id="resumeFileInput" accept=".pdf,.jpg,.jpeg,.png">
+      <div id="resumePreview" class="file-preview" style="display:none;">
+        <i class="fas fa-file-pdf"></i>
+        <span class="file-name" id="resumeFileName">resume.pdf</span>
+        <span class="file-size" id="resumeFileSize">2.5 MB</span>
+        <button id="removeResumeBtn" class="danger" style="padding:4px 12px; font-size:0.8rem;">Remove</button>
+      </div>
+      <button id="uploadResumeBtn" style="margin-top:10px;"><i class="fas fa-upload"></i> Upload Resume</button>
+      <div id="resumeUploadProgress" class="upload-progress">⏳ Uploading...</div>
+      <p style="font-size:0.8rem; color:#7a8a9a; margin-top:6px;">Current: <span id="currentResumeDisplay">No resume uploaded</span></p>
     </div>
 
     <!-- Contact Info -->
@@ -357,13 +449,20 @@
       </div>
     </div>
 
-    <!-- Certifications -->
+    <!-- Certifications with File Upload -->
     <div class="admin-section">
       <h3>📜 Manage Certifications</h3>
+      <p style="color:#6c7a8a; font-size:0.9rem; margin-bottom:1rem;">Add certification name and upload certificate file (PDF or image)</p>
       <div id="adminCertList"></div>
-      <div class="inline-flex">
-        <input type="text" id="newCertName" placeholder="Certification name" style="flex:1;">
-        <button id="addCertBtn"><i class="fas fa-plus"></i> Add</button>
+      <div style="background:#1a1e26; padding:1rem; border-radius:16px; margin-top:1rem;">
+        <input type="text" id="newCertName" placeholder="Certification name" style="margin-bottom:0.5rem;">
+        <input type="file" id="newCertFile" accept=".pdf,.jpg,.jpeg,.png" style="margin-bottom:0.5rem;">
+        <div id="newCertPreview" class="file-preview" style="display:none;">
+          <i class="fas fa-file-pdf"></i>
+          <span class="file-name" id="newCertFileName">file.pdf</span>
+          <span class="file-size" id="newCertFileSize">0 KB</span>
+        </div>
+        <button id="addCertBtn"><i class="fas fa-plus"></i> Add Certification</button>
       </div>
     </div>
 

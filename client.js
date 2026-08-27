@@ -58,11 +58,31 @@ function renderCertifications() {
   const list = document.getElementById('certList');
   if (!list) return;
   list.innerHTML = '';
+  
   appData.certifications.forEach(cert => {
+    const isFile = typeof cert === 'object';
+    const certName = isFile ? cert.name : cert;
+    const hasFile = isFile && cert.file && cert.file.data;
+    
     const span = document.createElement('span');
     span.className = 'cert-badge';
-    span.innerHTML = `<i class="fas fa-certificate"></i> ${cert}`;
+    span.innerHTML = `
+      <i class="fas fa-certificate"></i> ${certName}
+      ${hasFile ? `<button class="view-cert-btn-client" style="background:none;border:none;color:#1e88e5;cursor:pointer;margin-left:8px;font-size:0.8rem;" title="View certificate"><i class="fas fa-eye"></i></button>` : ''}
+    `;
     list.appendChild(span);
+    
+    if (hasFile) {
+      const viewBtn = span.querySelector('.view-cert-btn-client');
+      viewBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (cert.file && cert.file.data) {
+          window.open(cert.file.data, '_blank');
+        } else {
+          showToast('❌ No file available');
+        }
+      });
+    }
   });
 }
 
@@ -85,7 +105,6 @@ function renderContactInfo() {
   if (linkedinEl) linkedinEl.textContent = appData.linkedin;
   if (githubEl) githubEl.textContent = appData.github;
   
-  // Social links
   const linkedinLink = document.getElementById('linkedinLink');
   const githubLink = document.getElementById('githubLink');
   const emailLink = document.getElementById('emailLink');
@@ -104,16 +123,40 @@ function renderAll() {
 }
 
 // ========== RESUME DOWNLOAD ==========
+function getFileStorage() {
+  try {
+    const saved = localStorage.getItem('fileStorage');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return { resume: null, certificates: {} };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const downloadBtn = document.getElementById('downloadResumeBtn');
   if (downloadBtn) {
     downloadBtn.addEventListener('click', function(e) {
       e.preventDefault();
-      if (appData.resumeLink) {
+      
+      const fileStorage = getFileStorage();
+      
+      if (fileStorage.resume && fileStorage.resume.data) {
+        // Download uploaded resume
+        const link = document.createElement('a');
+        link.href = fileStorage.resume.data;
+        link.download = fileStorage.resume.filename || 'resume.pdf';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast('📄 Downloading resume...');
+      } else if (appData.resumeLink) {
+        // Fallback to URL if available
         window.open(appData.resumeLink, '_blank');
         showToast('Opening resume link...');
       } else {
-        const content = `${appData.name} - Technical Operations & Cybersecurity\n\n${appData.about}\n\nSkills: ${appData.skills.map(s => s.name).join(', ')}`;
+        // Generate default resume
+        const content = `${appData.name}\n\n${appData.about}\n\nSkills: ${appData.skills.map(s => s.name).join(', ')}\n\nExperience:\n${appData.experience.map(e => `${e.title} - ${e.company}`).join('\n')}`;
         const blob = new Blob([content], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -155,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
   startTyping();
 });
 
-// Listen for storage changes (when admin updates data)
+// Listen for storage changes
 window.addEventListener('storage', function(e) {
   if (e.key === 'portfolioData') {
     appData = loadData();

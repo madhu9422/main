@@ -1,18 +1,78 @@
 // ========== ADMIN CREDENTIALS ==========
 function getAdminCredentials() {
-  // Try to load from localStorage, or use defaults
   try {
     const saved = localStorage.getItem('adminCredentials');
     if (saved) {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // Ensure both username and password exist
+      if (parsed.username && parsed.password) {
+        return parsed;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('Error loading credentials, using defaults');
+  }
   // Default credentials
   return { username: 'admin', password: 'admin123' };
 }
 
 function saveAdminCredentials(username, password) {
   localStorage.setItem('adminCredentials', JSON.stringify({ username, password }));
+  console.log('Credentials saved:', username); // Debug
+}
+
+// ========== FILE STORAGE ==========
+function getFileStorage() {
+  try {
+    const saved = localStorage.getItem('fileStorage');
+    if (saved) {
+      return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return { resume: null, certificates: {} };
+}
+
+function saveFileStorage(storage) {
+  localStorage.setItem('fileStorage', JSON.stringify(storage));
+}
+
+// ========== FILE UPLOAD HELPERS ==========
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
+function base64ToFile(base64, filename) {
+  const arr = base64.split(',');
+  const mime = arr[0].match(/:(.*?);/)[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+}
+
+function getFileExtension(filename) {
+  return filename.split('.').pop().toLowerCase();
+}
+
+function getFileIcon(filename) {
+  const ext = getFileExtension(filename);
+  if (ext === 'pdf') return 'fa-file-pdf';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return 'fa-file-image';
+  return 'fa-file';
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 
 // ========== LOGIN FUNCTIONS ==========
@@ -22,15 +82,22 @@ function checkLoginStatus() {
 
 function login(username, password) {
   const creds = getAdminCredentials();
+  console.log('Login attempt - Input:', username, password); // Debug
+  console.log('Login attempt - Stored:', creds.username, creds.password); // Debug
+  
   if (username === creds.username && password === creds.password) {
     sessionStorage.setItem('adminLoggedIn', 'true');
+    sessionStorage.setItem('loginTime', Date.now().toString());
+    console.log('Login successful!'); // Debug
     return true;
   }
+  console.log('Login failed!'); // Debug
   return false;
 }
 
 function logout() {
   sessionStorage.removeItem('adminLoggedIn');
+  sessionStorage.removeItem('loginTime');
 }
 
 // ========== ADMIN RENDER FUNCTIONS ==========
@@ -187,14 +254,100 @@ function renderAdminCerts() {
   const list = document.getElementById('adminCertList');
   if (!list) return;
   list.innerHTML = '';
+  
+  const fileStorage = getFileStorage();
+  
   appData.certifications.forEach((cert, index) => {
-    const row = document.createElement('div');
-    row.className = 'cert-row';
-    row.innerHTML = `
-      <input type="text" value="${cert}" data-idx="${index}" class="admin-cert-name" style="flex:1;">
-      <button data-idx="${index}" class="danger remove-cert-btn"><i class="fas fa-trash"></i></button>
+    const isFile = typeof cert === 'object';
+    const certName = isFile ? cert.name : cert;
+    const certFile = isFile && cert.file ? cert.file : null;
+    const certId = isFile && cert.id ? cert.id : 'cert_' + index;
+    
+    const div = document.createElement('div');
+    div.className = 'cert-item';
+    div.innerHTML = `
+      <div class="cert-info" style="flex:1;">
+        <input type="text" value="${certName}" data-idx="${index}" class="admin-cert-name" placeholder="Certification name" style="margin-bottom:0;">
+      </div>
+      <div class="cert-actions">
+        ${certFile ? `<button data-idx="${index}" class="view-cert-btn success" style="background:#2e7d32;"><i class="fas fa-eye"></i> View</button>` : ''}
+        <button data-idx="${index}" class="upload-cert-btn" style="background:#1e88e5;"><i class="fas fa-upload"></i> ${certFile ? 'Replace' : 'Upload'}</button>
+        <button data-idx="${index}" class="danger remove-cert-btn"><i class="fas fa-trash"></i></button>
+      </div>
+      <input type="file" accept=".pdf,.jpg,.jpeg,.png" data-idx="${index}" class="cert-file-input" style="display:none;">
+      ${certFile ? `<div class="file-preview" style="width:100%;margin-top:8px;">
+        <i class="fas ${getFileIcon(certFile.filename)}"></i>
+        <span class="file-name">${certFile.filename}</span>
+        <span class="file-size">${formatFileSize(certFile.size)}</span>
+      </div>` : ''}
     `;
-    list.appendChild(row);
+    list.appendChild(div);
+  });
+  
+  document.querySelectorAll('.admin-cert-name').forEach(inp => {
+    inp.addEventListener('change', function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const newName = this.value.trim();
+      if (!newName) return;
+      
+      const current = appData.certifications[idx];
+      if (typeof current === 'object') {
+        current.name = newName;
+      } else {
+        appData.certifications[idx] = newName;
+      }
+      updateAndSave();
+    });
+  });
+  
+  document.querySelectorAll('.upload-cert-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const fileInput = document.querySelector(`.cert-file-input[data-idx="${idx}"]`);
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+  });
+  
+  document.querySelectorAll('.cert-file-input').forEach(input => {
+    input.addEventListener('change', async function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const file = this.files[0];
+      if (!file) return;
+      
+      try {
+        const base64 = await fileToBase64(file);
+        const certData = {
+          name: typeof appData.certifications[idx] === 'object' ? appData.certifications[idx].name : appData.certifications[idx],
+          file: {
+            filename: file.name,
+            size: file.size,
+            type: file.type,
+            data: base64
+          },
+          id: 'cert_' + Date.now() + '_' + idx
+        };
+        appData.certifications[idx] = certData;
+        updateAndSave();
+        renderAdminCerts();
+        showToast('✅ Certificate file uploaded: ' + file.name);
+      } catch (error) {
+        showToast('❌ Error uploading file: ' + error.message);
+      }
+    });
+  });
+  
+  document.querySelectorAll('.view-cert-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const cert = appData.certifications[idx];
+      if (typeof cert === 'object' && cert.file && cert.file.data) {
+        window.open(cert.file.data, '_blank');
+      } else {
+        showToast('❌ No file attached to this certificate');
+      }
+    });
   });
   
   document.querySelectorAll('.remove-cert-btn').forEach(btn => {
@@ -204,14 +357,6 @@ function renderAdminCerts() {
       updateAndSave();
       renderAdminCerts();
       showToast('Certification removed');
-    });
-  });
-  
-  document.querySelectorAll('.admin-cert-name').forEach(inp => {
-    inp.addEventListener('change', function() {
-      const idx = parseInt(this.getAttribute('data-idx'));
-      appData.certifications[idx] = this.value.trim() || 'Unnamed Cert';
-      updateAndSave();
     });
   });
 }
@@ -224,8 +369,17 @@ function renderAdminPanel() {
   document.getElementById('adminPhone').value = appData.phone;
   document.getElementById('adminLinkedin').value = appData.linkedin;
   document.getElementById('adminGithub').value = appData.github;
-  document.getElementById('resumeLinkInput').value = appData.resumeLink || '';
-  document.getElementById('currentResumeDisplay').textContent = appData.resumeLink || 'default (sample)';
+  
+  const fileStorage = getFileStorage();
+  if (fileStorage.resume) {
+    document.getElementById('resumePreview').style.display = 'flex';
+    document.getElementById('resumeFileName').textContent = fileStorage.resume.filename;
+    document.getElementById('resumeFileSize').textContent = formatFileSize(fileStorage.resume.size);
+    document.getElementById('currentResumeDisplay').textContent = fileStorage.resume.filename;
+  } else {
+    document.getElementById('resumePreview').style.display = 'none';
+    document.getElementById('currentResumeDisplay').textContent = 'No resume uploaded';
+  }
   
   renderAdminSkills();
   renderAdminExp();
@@ -261,20 +415,23 @@ document.addEventListener('DOMContentLoaded', function() {
     showAdminPanel();
   }
 
-  // ========== LOGIN FORM ==========
+  // ========== LOGIN FORM (FIXED) ==========
   document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const errorEl = document.getElementById('loginError');
     
+    console.log('Login attempt with:', username, password); // Debug
+    
     if (login(username, password)) {
       errorEl.style.display = 'none';
       appData = loadDataFromURL();
       showAdminPanel();
-      showToast('✅ Login successful!');
+      showToast('✅ Login successful! Welcome ' + username);
     } else {
       errorEl.style.display = 'block';
+      errorEl.textContent = '❌ Invalid username or password. Try admin/admin123';
       setTimeout(() => {
         errorEl.style.display = 'none';
       }, 3000);
@@ -317,19 +474,17 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     
-    // Save new password
     saveAdminCredentials(creds.username, newPass);
     msgEl.style.color = '#6fcf97';
-    msgEl.textContent = '✅ Password changed successfully!';
+    msgEl.textContent = '✅ Password changed successfully! New password: ' + newPass;
     
-    // Clear fields
     document.getElementById('currentPassword').value = '';
     document.getElementById('newPassword').value = '';
     document.getElementById('confirmPassword').value = '';
     
     setTimeout(() => {
       msgEl.textContent = '';
-    }, 4000);
+    }, 5000);
   });
 
   // ========== UPDATE PERSONAL INFO ==========
@@ -342,13 +497,66 @@ document.addEventListener('DOMContentLoaded', function() {
     showToast('Personal info updated');
   });
 
-  // ========== UPDATE RESUME ==========
-  document.getElementById('updateResumeBtn').addEventListener('click', function() {
-    const url = document.getElementById('resumeLinkInput').value.trim();
-    appData.resumeLink = url;
-    updateAndSave();
-    document.getElementById('currentResumeDisplay').textContent = url || 'default (sample)';
-    showToast(url ? 'Resume link updated' : 'Resume reset to default');
+  // ========== UPLOAD RESUME ==========
+  document.getElementById('uploadResumeBtn').addEventListener('click', async function() {
+    const fileInput = document.getElementById('resumeFileInput');
+    const file = fileInput.files[0];
+    if (!file) {
+      showToast('⚠️ Please select a file first');
+      return;
+    }
+    
+    const progress = document.getElementById('resumeUploadProgress');
+    progress.classList.add('active');
+    progress.textContent = '⏳ Uploading...';
+    
+    try {
+      const base64 = await fileToBase64(file);
+      const fileStorage = getFileStorage();
+      fileStorage.resume = {
+        filename: file.name,
+        size: file.size,
+        type: file.type,
+        data: base64
+      };
+      saveFileStorage(fileStorage);
+      
+      progress.textContent = '✅ Upload complete!';
+      setTimeout(() => progress.classList.remove('active'), 2000);
+      
+      document.getElementById('resumePreview').style.display = 'flex';
+      document.getElementById('resumeFileName').textContent = file.name;
+      document.getElementById('resumeFileSize').textContent = formatFileSize(file.size);
+      document.getElementById('currentResumeDisplay').textContent = file.name;
+      fileInput.value = '';
+      
+      showToast('✅ Resume uploaded successfully!');
+    } catch (error) {
+      progress.textContent = '❌ Error: ' + error.message;
+      setTimeout(() => progress.classList.remove('active'), 3000);
+      showToast('❌ Error uploading file');
+    }
+  });
+  
+  document.getElementById('resumeFileInput').addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      document.getElementById('resumePreview').style.display = 'flex';
+      document.getElementById('resumeFileName').textContent = file.name;
+      document.getElementById('resumeFileSize').textContent = formatFileSize(file.size);
+    }
+  });
+  
+  document.getElementById('removeResumeBtn').addEventListener('click', function() {
+    if (confirm('Remove uploaded resume?')) {
+      const fileStorage = getFileStorage();
+      fileStorage.resume = null;
+      saveFileStorage(fileStorage);
+      document.getElementById('resumePreview').style.display = 'none';
+      document.getElementById('currentResumeDisplay').textContent = 'No resume uploaded';
+      document.getElementById('resumeFileInput').value = '';
+      showToast('Resume removed');
+    }
   });
 
   // ========== UPDATE CONTACT ==========
@@ -414,20 +622,54 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ========== ADD CERTIFICATION ==========
-  document.getElementById('addCertBtn').addEventListener('click', function() {
+  document.getElementById('addCertBtn').addEventListener('click', async function() {
     const name = document.getElementById('newCertName').value.trim();
+    const fileInput = document.getElementById('newCertFile');
+    const file = fileInput.files[0];
+    
     if (!name) { showToast('Please enter certification name'); return; }
-    appData.certifications.push(name);
+    
+    let certData = { name };
+    
+    if (file) {
+      try {
+        const base64 = await fileToBase64(file);
+        certData.file = {
+          filename: file.name,
+          size: file.size,
+          type: file.type,
+          data: base64
+        };
+        certData.id = 'cert_' + Date.now();
+      } catch (error) {
+        showToast('❌ Error processing file: ' + error.message);
+        return;
+      }
+    }
+    
+    appData.certifications.push(certData);
     updateAndSave();
     document.getElementById('newCertName').value = '';
+    document.getElementById('newCertFile').value = '';
+    document.getElementById('newCertPreview').style.display = 'none';
     renderAdminCerts();
-    showToast('Certification added');
+    showToast(file ? '✅ Certification with file added' : 'Certification added');
+  });
+  
+  document.getElementById('newCertFile').addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+      document.getElementById('newCertPreview').style.display = 'flex';
+      document.getElementById('newCertFileName').textContent = file.name;
+      document.getElementById('newCertFileSize').textContent = formatFileSize(file.size);
+    }
   });
 
   // ========== RESET DATA ==========
   document.getElementById('resetDataBtn').addEventListener('click', function() {
     if (confirm('⚠️ Are you sure you want to reset all data to default? This cannot be undone!')) {
       appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
+      localStorage.removeItem('fileStorage');
       updateAndSave();
       renderAdminPanel();
       showToast('All data reset to default');
@@ -448,14 +690,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // ========== CHANGE PASSWORD BUTTON (scroll to section) ==========
+  // ========== CHANGE PASSWORD BUTTON ==========
   document.getElementById('changePasswordBtn').addEventListener('click', function() {
     document.querySelector('.change-password-section').scrollIntoView({ behavior: 'smooth' });
     document.getElementById('currentPassword').focus();
   });
 
-  // ========== KEYBOARD SHORTCUT: Enter to login ==========
+  // ========== KEYBOARD SHORTCUT ==========
   document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+    }
+  });
+  
+  document.getElementById('loginUsername').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       document.getElementById('loginForm').dispatchEvent(new Event('submit'));
     }
