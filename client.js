@@ -54,15 +54,15 @@ function renderProjects() {
   });
 }
 
-function renderCertifications() {
+async function renderCertifications() {
   const list = document.getElementById('certList');
   if (!list) return;
   list.innerHTML = '';
   
-  appData.certifications.forEach(cert => {
+  for (const cert of appData.certifications) {
     const isFile = typeof cert === 'object';
     const certName = isFile ? cert.name : cert;
-    const hasFile = isFile && cert.file && cert.file.data;
+    const hasFile = isFile && cert.fileId;
     
     const span = document.createElement('span');
     span.className = 'cert-badge';
@@ -74,16 +74,21 @@ function renderCertifications() {
     
     if (hasFile) {
       const viewBtn = span.querySelector('.view-cert-btn-client');
-      viewBtn.addEventListener('click', function(e) {
+      viewBtn.addEventListener('click', async function(e) {
         e.stopPropagation();
-        if (cert.file && cert.file.data) {
-          window.open(cert.file.data, '_blank');
-        } else {
-          showToast('❌ No file available');
+        try {
+          const fileData = await getFileData(cert.fileId);
+          if (fileData && fileData.data) {
+            window.open(fileData.data, '_blank');
+          } else {
+            showToast('❌ File not found', 'error');
+          }
+        } catch (error) {
+          showToast('❌ Error loading file', 'error');
         }
       });
     }
-  });
+  }
 }
 
 function renderPersonalInfo() {
@@ -134,36 +139,34 @@ function renderAll() {
 }
 
 // ========== RESUME DOWNLOAD ==========
-function getFileStorage() {
-  try {
-    const saved = localStorage.getItem('fileStorage');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {}
-  return { resume: null, certificates: {} };
-}
-
 document.addEventListener('DOMContentLoaded', function() {
   const downloadBtn = document.getElementById('downloadResumeBtn');
   if (downloadBtn) {
-    downloadBtn.addEventListener('click', function(e) {
+    downloadBtn.addEventListener('click', async function(e) {
       e.preventDefault();
       
-      const fileStorage = getFileStorage();
-      
-      if (fileStorage.resume && fileStorage.resume.data) {
-        const link = document.createElement('a');
-        link.href = fileStorage.resume.data;
-        link.download = fileStorage.resume.filename || 'resume.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast('📄 Downloading resume...');
-      } else if (appData.resumeLink) {
-        window.open(appData.resumeLink, '_blank');
-        showToast('Opening resume link...');
-      } else {
+      try {
+        if (appData.resumeFileId) {
+          const fileData = await getFileData(appData.resumeFileId);
+          if (fileData && fileData.data) {
+            const link = document.createElement('a');
+            link.href = fileData.data;
+            link.download = fileData.filename || 'resume.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('📄 Downloading resume...', 'success');
+            return;
+          }
+        }
+        
+        if (appData.resumeLink) {
+          window.open(appData.resumeLink, '_blank');
+          showToast('Opening resume link...');
+          return;
+        }
+        
+        // Generate default resume
         const content = `${appData.name}\n\n${appData.about}\n\nSkills: ${appData.skills.map(s => s.name).join(', ')}\n\nExperience:\n${appData.experience.map(e => `${e.title} - ${e.company}`).join('\n')}`;
         const blob = new Blob([content], { type: 'application/pdf' });
         const url = URL.createObjectURL(blob);
@@ -175,6 +178,8 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         showToast('✓ Resume downloaded (sample)');
+      } catch (error) {
+        showToast('❌ Error downloading resume', 'error');
       }
     });
   }

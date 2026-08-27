@@ -11,7 +11,6 @@ function getAdminCredentials() {
   } catch (e) {
     console.warn('Error loading credentials, using defaults');
   }
-  // Default credentials
   return { username: 'admin', password: 'admin123' };
 }
 
@@ -20,19 +19,14 @@ function saveAdminCredentials(username, password) {
   console.log('✅ Credentials saved:', username);
 }
 
-// ========== FILE STORAGE ==========
-function getFileStorage() {
+// ========== FILE STORAGE (Using IndexedDB) ==========
+async function getFileStorage() {
   try {
-    const saved = localStorage.getItem('fileStorage');
-    if (saved) {
-      return JSON.parse(saved);
-    }
-  } catch (e) {}
-  return { resume: null, certificates: {} };
-}
-
-function saveFileStorage(storage) {
-  localStorage.setItem('fileStorage', JSON.stringify(storage));
+    const files = await getAllFilesFromIndexedDB();
+    return files;
+  } catch (e) {
+    return {};
+  }
 }
 
 // ========== FILE UPLOAD HELPERS ==========
@@ -301,42 +295,53 @@ function renderAdminCerts() {
       if (!file) return;
       
       try {
-        const base64 = await fileToBase64(file);
+        // Store file in IndexedDB
+        const fileId = await storeFile(file);
+        
         const certData = {
           name: typeof appData.certifications[idx] === 'object' ? appData.certifications[idx].name : appData.certifications[idx],
+          fileId: fileId,
           file: {
+            id: fileId,
             filename: file.name,
             size: file.size,
-            type: file.type,
-            data: base64
-          },
-          id: 'cert_' + Date.now() + '_' + idx
+            type: file.type
+          }
         };
         appData.certifications[idx] = certData;
         updateAndSave();
         renderAdminCerts();
-        showToast('✅ Certificate file uploaded: ' + file.name);
+        showToast('✅ Certificate file uploaded: ' + file.name, 'success');
       } catch (error) {
-        showToast('❌ Error uploading file: ' + error.message);
+        showToast('❌ Error uploading file: ' + error.message, 'error');
       }
     });
   });
   
   document.querySelectorAll('.view-cert-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const idx = parseInt(this.getAttribute('data-idx'));
       const cert = appData.certifications[idx];
-      if (typeof cert === 'object' && cert.file && cert.file.data) {
-        window.open(cert.file.data, '_blank');
+      if (typeof cert === 'object' && cert.fileId) {
+        const fileData = await getFileData(cert.fileId);
+        if (fileData && fileData.data) {
+          window.open(fileData.data, '_blank');
+        } else {
+          showToast('❌ File not found', 'error');
+        }
       } else {
-        showToast('❌ No file attached to this certificate');
+        showToast('❌ No file attached to this certificate', 'error');
       }
     });
   });
   
   document.querySelectorAll('.remove-cert-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', async function() {
       const idx = parseInt(this.getAttribute('data-idx'));
+      const cert = appData.certifications[idx];
+      if (typeof cert === 'object' && cert.fileId) {
+        await deleteFile(cert.fileId);
+      }
       appData.certifications.splice(idx, 1);
       updateAndSave();
       renderAdminCerts();
@@ -345,7 +350,7 @@ function renderAdminCerts() {
   });
 }
 
-function renderAdminPanel() {
+async function renderAdminPanel() {
   document.getElementById('adminName').value = appData.name;
   document.getElementById('adminBio').value = appData.bio;
   document.getElementById('adminAbout').value = appData.about;
@@ -354,12 +359,18 @@ function renderAdminPanel() {
   document.getElementById('adminLinkedin').value = appData.linkedin;
   document.getElementById('adminGithub').value = appData.github;
   
-  const fileStorage = getFileStorage();
-  if (fileStorage.resume) {
-    document.getElementById('resumePreview').style.display = 'flex';
-    document.getElementById('resumeFileName').textContent = fileStorage.resume.filename;
-    document.getElementById('resumeFileSize').textContent = formatFileSize(fileStorage.resume.size);
-    document.getElementById('currentResumeDisplay').textContent = fileStorage.resume.filename;
+  // Load resume from IndexedDB
+  if (appData.resumeFileId) {
+    const fileData = await getFileData(appData.resumeFileId);
+    if (fileData) {
+      document.getElementById('resumePreview').style.display = 'flex';
+      document.getElementById('resumeFileName').textContent = fileData.filename;
+      document.getElementById('resumeFileSize').textContent = formatFileSize(fileData.size);
+      document.getElementById('currentResumeDisplay').textContent = fileData.filename;
+    } else {
+      document.getElementById('resumePreview').style.display = 'none';
+      document.getElementById('currentResumeDisplay').textContent = 'No resume uploaded';
+    }
   } else {
     document.getElementById('resumePreview').style.display = 'none';
     document.getElementById('currentResumeDisplay').textContent = 'No resume uploaded';
@@ -376,7 +387,7 @@ function updateAndSave() {
   saveDataToLocalStorage(appData);
   const newUrl = saveDataToURL(appData);
   window.history.replaceState({}, '', newUrl);
-  showToast('✅ Changes saved!');
+  showToast('✅ Changes saved!', 'success');
 }
 
 // ========== SHOW/HIDE ADMIN PANEL ==========
@@ -384,7 +395,7 @@ function showAdminPanel() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('adminPanel').classList.add('active');
   renderAdminPanel();
-  showToast('✅ Welcome to Admin Panel!');
+  showToast('✅ Welcome to Admin Panel!', 'success');
 }
 
 function showLoginScreen() {
@@ -394,7 +405,6 @@ function showLoginScreen() {
 
 // ========== ADMIN EVENT LISTENERS ==========
 document.addEventListener('DOMContentLoaded', function() {
-  // Check if already logged in
   if (checkLoginStatus()) {
     appData = loadDataFromURL();
     showAdminPanel();
@@ -406,8 +416,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const errorEl = document.getElementById('loginError');
-    
-    console.log('🔑 Login attempt:', username);
     
     if (login(username, password)) {
       errorEl.style.display = 'none';
@@ -477,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function() {
     appData.about = document.getElementById('adminAbout').value.trim() || 'About me here';
     updateAndSave();
     renderAdminPanel();
-    showToast('Personal info updated');
+    showToast('Personal info updated', 'success');
   });
 
   // ========== UPLOAD RESUME ==========
@@ -485,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('resumeFileInput');
     const file = fileInput.files[0];
     if (!file) {
-      showToast('⚠️ Please select a file first');
+      showToast('⚠️ Please select a file first', 'error');
       return;
     }
     
@@ -494,15 +502,22 @@ document.addEventListener('DOMContentLoaded', function() {
     progress.textContent = '⏳ Uploading...';
     
     try {
-      const base64 = await fileToBase64(file);
-      const fileStorage = getFileStorage();
-      fileStorage.resume = {
+      // Delete old resume file if exists
+      if (appData.resumeFileId) {
+        await deleteFile(appData.resumeFileId);
+      }
+      
+      // Store new file
+      const fileId = await storeFile(file);
+      appData.resumeFileId = fileId;
+      appData.resumeFile = {
+        id: fileId,
         filename: file.name,
         size: file.size,
-        type: file.type,
-        data: base64
+        type: file.type
       };
-      saveFileStorage(fileStorage);
+      
+      updateAndSave();
       
       progress.textContent = '✅ Upload complete!';
       setTimeout(() => progress.classList.remove('active'), 2000);
@@ -513,11 +528,11 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('currentResumeDisplay').textContent = file.name;
       fileInput.value = '';
       
-      showToast('✅ Resume uploaded successfully!');
+      showToast('✅ Resume uploaded successfully!', 'success');
     } catch (error) {
       progress.textContent = '❌ Error: ' + error.message;
       setTimeout(() => progress.classList.remove('active'), 3000);
-      showToast('❌ Error uploading file');
+      showToast('❌ Error uploading file', 'error');
     }
   });
   
@@ -530,11 +545,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
   
-  document.getElementById('removeResumeBtn').addEventListener('click', function() {
+  document.getElementById('removeResumeBtn').addEventListener('click', async function() {
     if (confirm('Remove uploaded resume?')) {
-      const fileStorage = getFileStorage();
-      fileStorage.resume = null;
-      saveFileStorage(fileStorage);
+      if (appData.resumeFileId) {
+        await deleteFile(appData.resumeFileId);
+        delete appData.resumeFileId;
+        delete appData.resumeFile;
+        updateAndSave();
+      }
       document.getElementById('resumePreview').style.display = 'none';
       document.getElementById('currentResumeDisplay').textContent = 'No resume uploaded';
       document.getElementById('resumeFileInput').value = '';
@@ -550,7 +568,7 @@ document.addEventListener('DOMContentLoaded', function() {
     appData.github = document.getElementById('adminGithub').value.trim() || 'github.com/username';
     updateAndSave();
     renderAdminPanel();
-    showToast('Contact info updated');
+    showToast('Contact info updated', 'success');
   });
 
   // ========== ADD SKILL ==========
@@ -559,7 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const levelInput = document.getElementById('newSkillLevel');
     const name = nameInput.value.trim();
     let level = parseInt(levelInput.value);
-    if (!name) { showToast('Please enter skill name'); return; }
+    if (!name) { showToast('Please enter skill name', 'error'); return; }
     if (isNaN(level) || level < 0) level = 0;
     if (level > 100) level = 100;
     appData.skills.push({ name, level });
@@ -567,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
     nameInput.value = '';
     levelInput.value = '';
     renderAdminSkills();
-    showToast('Skill added');
+    showToast('Skill added', 'success');
   });
 
   // ========== ADD EXPERIENCE ==========
@@ -575,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const title = document.getElementById('newExpTitle').value.trim();
     const company = document.getElementById('newExpCompany').value.trim();
     const descText = document.getElementById('newExpDesc').value;
-    if (!title || !company) { showToast('Please fill title and company'); return; }
+    if (!title || !company) { showToast('Please fill title and company', 'error'); return; }
     const description = descText.split('\n').filter(l => l.trim());
     if (!description.length) description.push('No description provided');
     appData.experience.push({ title, company, description });
@@ -584,7 +602,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('newExpCompany').value = '';
     document.getElementById('newExpDesc').value = '';
     renderAdminExp();
-    showToast('Experience added');
+    showToast('Experience added', 'success');
   });
 
   // ========== ADD PROJECT ==========
@@ -592,7 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const title = document.getElementById('newProjectTitle').value.trim();
     const techText = document.getElementById('newProjectTech').value;
     const desc = document.getElementById('newProjectDesc').value.trim();
-    if (!title) { showToast('Please enter project title'); return; }
+    if (!title) { showToast('Please enter project title', 'error'); return; }
     const tech = techText.split(',').map(s => s.trim()).filter(s => s);
     if (!tech.length) tech.push('Tech');
     appData.projects.push({ title, tech, description: desc || 'No description' });
@@ -601,7 +619,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('newProjectTech').value = '';
     document.getElementById('newProjectDesc').value = '';
     renderAdminProjects();
-    showToast('Project added');
+    showToast('Project added', 'success');
   });
 
   // ========== ADD CERTIFICATION ==========
@@ -610,22 +628,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('newCertFile');
     const file = fileInput.files[0];
     
-    if (!name) { showToast('Please enter certification name'); return; }
+    if (!name) { showToast('Please enter certification name', 'error'); return; }
     
     let certData = { name };
     
     if (file) {
       try {
-        const base64 = await fileToBase64(file);
+        const fileId = await storeFile(file);
+        certData.fileId = fileId;
         certData.file = {
+          id: fileId,
           filename: file.name,
           size: file.size,
-          type: file.type,
-          data: base64
+          type: file.type
         };
-        certData.id = 'cert_' + Date.now();
       } catch (error) {
-        showToast('❌ Error processing file: ' + error.message);
+        showToast('❌ Error processing file: ' + error.message, 'error');
         return;
       }
     }
@@ -636,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('newCertFile').value = '';
     document.getElementById('newCertPreview').style.display = 'none';
     renderAdminCerts();
-    showToast(file ? '✅ Certification with file added' : 'Certification added');
+    showToast(file ? '✅ Certification with file added' : 'Certification added', 'success');
   });
   
   document.getElementById('newCertFile').addEventListener('change', function() {
@@ -649,13 +667,16 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // ========== RESET DATA ==========
-  document.getElementById('resetDataBtn').addEventListener('click', function() {
+  document.getElementById('resetDataBtn').addEventListener('click', async function() {
     if (confirm('⚠️ Are you sure you want to reset all data to default? This cannot be undone!')) {
+      // Clear all files from IndexedDB
+      await clearAllFilesFromIndexedDB();
       appData = JSON.parse(JSON.stringify(DEFAULT_DATA));
-      localStorage.removeItem('fileStorage');
+      delete appData.resumeFileId;
+      delete appData.resumeFile;
       updateAndSave();
       renderAdminPanel();
-      showToast('All data reset to default');
+      showToast('All data reset to default', 'success');
     }
   });
 
@@ -664,7 +685,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const url = window.location.href;
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
-        showToast('📋 URL with data copied! Share this link.');
+        showToast('📋 URL with data copied! Share this link.', 'success');
       }).catch(() => {
         showToast('📋 Copy this URL: ' + url);
       });
