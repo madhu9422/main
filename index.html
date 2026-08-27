@@ -4,46 +4,91 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Madhukumar C. | Technical Operations & Cybersecurity</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- ========== NAVIGATION ========== -->
 <nav>
   <div class="container">
-    <ul class="nav-links">
-      <li><a href="#home">Home</a></li>
-      <li><a href="#about">About</a></li>
-      <li><a href="#skills">Skills</a></li>
-      <li><a href="#experience">Experience</a></li>
-      <li><a href="#projects">Projects</a></li>
-      <li><a href="#certifications">Certifications</a></li>
-      <li><a href="#contact">Contact</a></li>
-      <li><a href="admin.html" target="_blank" class="admin-link"><i class="fas fa-user-cog"></i> Admin</a></li>
-    </ul>
+    <div class="nav-wrapper">
+      <div class="nav-logo">
+        <span class="logo-text">MC</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#skills">Skills</a></li>
+        <li><a href="#experience">Experience</a></li>
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#certifications">Certifications</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="admin.html" target="_blank" class="admin-link"><i class="fas fa-user-cog"></i> Admin</a></li>
+      </ul>
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
   </div>
 </nav>
 
 <main>
-  <!-- HOME -->
+  <!-- ========== HOME SECTION ========== -->
   <section id="home" class="home-section">
     <div class="container">
-      <div class="home-content">
-        <div class="home-badge">👋 Welcome to my portfolio</div>
-        <h1 id="userName">Hi, I'm Madhukumar C.</h1>
-        <div class="typewriter"><span>Technical Operations | </span><span class="typed-text" id="typed"></span></div>
-        <p id="userBio" class="home-bio">
-          I specialize in Technical Support, Linux Administration, Networking, Server Monitoring, and Security Operations.
-        </p>
-        <div class="home-buttons">
-          <a href="#" class="btn-primary" id="downloadResumeBtn"><i class="fas fa-download"></i> Download Resume</a>
-          <a href="#contact" class="btn-outline"><i class="fas fa-envelope"></i> Contact Me</a>
+      <div class="home-grid">
+        <div class="home-content">
+          <div class="home-badge">🚀 Welcome to my portfolio</div>
+          <h1 id="userName">Hi, I'm <span class="highlight">Madhukumar C.</span></h1>
+          <div class="typewriter">
+            <span class="typewriter-label">Technical Operations | </span>
+            <span class="typed-text" id="typed"></span>
+          </div>
+          <p id="userBio" class="home-bio">
+            I specialize in Technical Support, Linux Administration, Networking, Server Monitoring, and Security Operations.
+          </p>
+          <div class="home-buttons">
+            <a href="#" class="btn-primary" id="downloadResumeBtn">
+              <i class="fas fa-download"></i> Download Resume
+            </a>
+            <a href="#contact" class="btn-outline">
+              <i class="fas fa-envelope"></i> Contact Me
+            </a>
+          </div>
+          <div class="social-icons">
+            <a href="#" id="linkedinLink" class="social-link" aria-label="LinkedIn">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" id="githubLink" class="social-link" aria-label="GitHub">
+              <i class="fab fa-github"></i>
+            </a>
+            <a href="#" id="emailLink" class="social-link" aria-label="Email">
+              <i class="fas fa-envelope"></i>
+            </a>
+          </div>
         </div>
-        <div class="social-icons">
-          <a href="#" id="linkedinLink" class="social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-          <a href="#" id="githubLink" class="social-link" aria-label="GitHub"><i class="fab fa-github"></i></a>
-          <a href="#" id="emailLink" class="social-link" aria-label="Email"><i class="fas fa-envelope"></i></a>
+        <div class="home-visual">
+          <div class="profile-ring">
+            <div class="profile-ring-inner">
+              <div class="profile-avatar">
+                <span>MC</span>
+              </div>
+            </div>
+          </div>
+          <div class="floating-badge badge-1">
+            <i class="fas fa-server"></i>
+            <span>Linux Admin</span>
+          </div>
+          <div class="floating-badge badge-2">
+            <i class="fas fa-shield-alt"></i>
+            <span>Cybersecurity</span>
+          </div>
+          <div class="floating-badge badge-3">
+            <i class="fas fa-network-wired"></i>
+            <span>Networking</span>
+          </div>
         </div>
       </div>
     </div>
@@ -54,121 +99,172 @@
     </div>
   </section>
 
-  <!-- ABOUT -->
+  <!-- ========== ABOUT SECTION ========== -->
   <section id="about" class="about-section">
     <div class="container">
       <h2 class="section-title">👨‍💻 About Me</h2>
-      <div class="about-card">
-        <p id="aboutText">I am a Computer Science graduate with hands-on experience at Eduquity Career Technologies, supporting large-scale CBT infrastructure, server monitoring, incident management, and network troubleshooting. I am passionate about networking, Linux, cybersecurity, and automation using Python.</p>
-        <div class="about-stats">
-          <div class="stat-item">
-            <span class="stat-number">2+</span>
-            <span class="stat-label">Years Experience</span>
+      <div class="about-grid">
+        <div class="about-card">
+          <p id="aboutText">
+            I am a Computer Science graduate with hands-on experience at Eduquity Career Technologies, supporting large-scale CBT infrastructure, server monitoring, incident management, and network troubleshooting. I am passionate about networking, Linux, cybersecurity, and automation using Python.
+          </p>
+          <div class="about-stats">
+            <div class="stat-item">
+              <span class="stat-number">2+</span>
+              <span class="stat-label">Years Experience</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">10+</span>
+              <span class="stat-label">Projects</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">5+</span>
+              <span class="stat-label">Certifications</span>
+            </div>
           </div>
-          <div class="stat-item">
-            <span class="stat-number">10+</span>
-            <span class="stat-label">Projects</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-number">5+</span>
-            <span class="stat-label">Certifications</span>
+        </div>
+        <div class="about-image">
+          <div class="about-image-placeholder">
+            <i class="fas fa-user-circle"></i>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- SKILLS -->
+  <!-- ========== SKILLS SECTION ========== -->
   <section id="skills" class="skills-section">
     <div class="container">
-      <h2 class="section-title">🛠 Technical Skills</h2>
+      <div class="section-header">
+        <h2 class="section-title">🛠 Technical Skills</h2>
+        <p class="section-subtitle">Technologies and tools I work with</p>
+      </div>
       <div class="skills-grid" id="skillsGrid"></div>
     </div>
   </section>
 
-  <!-- EXPERIENCE -->
+  <!-- ========== EXPERIENCE SECTION ========== -->
   <section id="experience" class="experience-section">
     <div class="container">
-      <h2 class="section-title">💼 Experience</h2>
-      <div id="experienceContainer"></div>
+      <div class="section-header">
+        <h2 class="section-title">💼 Experience</h2>
+        <p class="section-subtitle">My professional journey</p>
+      </div>
+      <div class="timeline" id="experienceContainer"></div>
     </div>
   </section>
 
-  <!-- PROJECTS -->
+  <!-- ========== PROJECTS SECTION ========== -->
   <section id="projects" class="projects-section">
     <div class="container">
-      <h2 class="section-title">🚀 Featured Projects</h2>
-      <div id="projectsContainer"></div>
+      <div class="section-header">
+        <h2 class="section-title">🚀 Featured Projects</h2>
+        <p class="section-subtitle">Projects I've worked on</p>
+      </div>
+      <div class="projects-grid" id="projectsContainer"></div>
     </div>
   </section>
 
-  <!-- CERTIFICATIONS -->
+  <!-- ========== CERTIFICATIONS SECTION ========== -->
   <section id="certifications" class="certifications-section">
     <div class="container">
-      <h2 class="section-title">📜 Certifications</h2>
+      <div class="section-header">
+        <h2 class="section-title">📜 Certifications</h2>
+        <p class="section-subtitle">Professional certifications</p>
+      </div>
       <div class="cert-list" id="certList"></div>
     </div>
   </section>
 
-  <!-- CONTACT -->
+  <!-- ========== CONTACT SECTION ========== -->
   <section id="contact" class="contact-section">
     <div class="container">
-      <h2 class="section-title">📞 Contact Me</h2>
-      <div class="contact-flex">
+      <div class="section-header">
+        <h2 class="section-title">📞 Contact Me</h2>
+        <p class="section-subtitle">Let's connect and work together</p>
+      </div>
+      <div class="contact-wrapper">
         <div class="contact-info">
-          <div class="contact-item">
-            <i class="fas fa-envelope"></i>
-            <div>
-              <span class="contact-label">Email</span>
-              <span id="contactEmail">madhukumarc009@gmail.com</span>
+          <h3>Get in touch</h3>
+          <p>Feel free to reach out for collaborations or just a friendly chat</p>
+          <div class="contact-items">
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+              <div>
+                <span class="contact-label">Email</span>
+                <span id="contactEmail">madhukumarc009@gmail.com</span>
+              </div>
             </div>
-          </div>
-          <div class="contact-item">
-            <i class="fas fa-phone-alt"></i>
-            <div>
-              <span class="contact-label">Phone</span>
-              <span id="contactPhone">+91 8688050394</span>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+              <div>
+                <span class="contact-label">Phone</span>
+                <span id="contactPhone">+91 8688050394</span>
+              </div>
             </div>
-          </div>
-          <div class="contact-item">
-            <i class="fab fa-linkedin-in"></i>
-            <div>
-              <span class="contact-label">LinkedIn</span>
-              <span id="contactLinkedin">linkedin.com/in/madhukumarc</span>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fab fa-linkedin-in"></i></div>
+              <div>
+                <span class="contact-label">LinkedIn</span>
+                <span id="contactLinkedin">linkedin.com/in/madhukumarc</span>
+              </div>
             </div>
-          </div>
-          <div class="contact-item">
-            <i class="fab fa-github"></i>
-            <div>
-              <span class="contact-label">GitHub</span>
-              <span id="contactGithub">github.com/madhukumarc</span>
+            <div class="contact-item">
+              <div class="contact-icon"><i class="fab fa-github"></i></div>
+              <div>
+                <span class="contact-label">GitHub</span>
+                <span id="contactGithub">github.com/madhukumarc</span>
+              </div>
             </div>
           </div>
         </div>
-        <div class="contact-form">
-          <form id="contactForm">
-            <input type="text" placeholder="Your Name" required id="formName">
-            <input type="email" placeholder="Email Address" required id="formEmail">
-            <textarea rows="3" placeholder="Message..." required id="formMsg"></textarea>
-            <button type="submit"><i class="fas fa-paper-plane"></i> Send Message</button>
+        <div class="contact-form-wrapper">
+          <form id="contactForm" class="contact-form">
+            <div class="form-group">
+              <input type="text" placeholder="Your Name" required id="formName">
+            </div>
+            <div class="form-group">
+              <input type="email" placeholder="Email Address" required id="formEmail">
+            </div>
+            <div class="form-group">
+              <textarea rows="4" placeholder="Your Message..." required id="formMsg"></textarea>
+            </div>
+            <button type="submit">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
           </form>
           <p id="formFeedback" class="form-feedback"></p>
         </div>
       </div>
     </div>
   </section>
+</main>
 
-  <footer>
-    <div class="container">
-      <p>© 2026 Madhukumar C. — Technical Operations & Cybersecurity</p>
+<!-- ========== FOOTER ========== -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-left">
+        <p>© 2026 <span class="footer-name">Madhukumar C.</span></p>
+        <span class="footer-tagline">Technical Operations & Cybersecurity</span>
+      </div>
       <div class="footer-social">
-        <a href="#" id="footerLinkedin"><i class="fab fa-linkedin-in"></i></a>
-        <a href="#" id="footerGithub"><i class="fab fa-github"></i></a>
-        <a href="#" id="footerEmail"><i class="fas fa-envelope"></i></a>
+        <a href="#" id="footerLinkedin" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+        <a href="#" id="footerGithub" aria-label="GitHub"><i class="fab fa-github"></i></a>
+        <a href="#" id="footerEmail" aria-label="Email"><i class="fas fa-envelope"></i></a>
+      </div>
+      <div class="footer-nav">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#skills">Skills</a>
+        <a href="#experience">Experience</a>
+        <a href="#projects">Projects</a>
+        <a href="#certifications">Certifications</a>
+        <a href="#contact">Contact</a>
       </div>
     </div>
-  </footer>
-</main>
+  </div>
+</footer>
 
 <script src="script.js"></script>
 <script src="client.js"></script>
